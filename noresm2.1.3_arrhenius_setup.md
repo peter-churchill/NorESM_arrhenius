@@ -22,11 +22,11 @@
 
 Run in every new shell, before building or creating cases:
 
-bash
+```
 module load buildenv-intel/2023a-eb
 export MODULEPATH=/nobackup/proj/disk/ecearth3_input-data/apps/EasyBuild/el9_epyc9005/modules/all/Compiler/GCCcore/12.3.0:/nobackup/proj/disk/ecearth3_input-data/apps/EasyBuild/el9_epyc9005/modules/all/MPI/intel/2023.1.0/impi/2021.9.0:$MODULEPATH
 module load netCDF-Fortran/4.6.1 netCDF/4.9.2 netCDF-C++4/4.3.1
-
+```
 
 If a newer Python module is loaded (check module list), unload it.
 
@@ -34,30 +34,30 @@ If a newer Python module is loaded (check module list), unload it.
 
 The yml pins bioconda builds of Perl packages. With conda's default channel_priority=strict these are excluded ("excluded by strict repo priority"), so the solve fails. Fix: relax channel priority for this command only:
 
-bash
+```
 CONDA_CHANNEL_PRIORITY=flexible conda env create -n noresm_env \
   -f /nobackup/proj/disk/cesm_input-data/shared/config/cesm2.2.2/environment.yaml
-
+```
 
 Provides Python 3.11 plus the Perl libraries CIME needs.
 
 
 ## 2.1 Every time: 
 
-bash
+```
 conda activate noresm_env
-
+```
 
 ## 3. Get the code at the 2.1.3 release (one-time)
 
-bash
+```
 cd /nobackup/proj/disk/luftlab/personal/$USER
 git clone https://github.com/NorESMhub/NorESM.git NorESM2.1.3
 cd NorESM2.1.3
 git checkout release-noresm2.1.3          # cloning alone gives master, NOT 2.1.3
 ./manage_externals/checkout_externals
 ./manage_externals/checkout_externals -S  # verify: no 'M'; 'e-o' (optional) entries are fine
-
+```
 
 Resulting versions:
 
@@ -74,11 +74,11 @@ Resulting versions:
 
 Copy the cesm_input-data arrhenius machine files into cime:
 
-bash
+```
 cd /nobackup/proj/disk/luftlab/personal/$USER/NorESM2.1.3
 cp /nobackup/proj/disk/cesm_input-data/shared/config/cesm2.2.2/config_{batch,compilers,machines}.xml \
    cime/config/cesm/machines/
-
+```
 
 Two fixes are needed in config_compilers.xml for NorESM's cime5.6.10.
 
@@ -88,10 +88,10 @@ compile_threaded="TRUE"/"FALSE" must be lowercase.
 
 Symptom: case.setup fails with 'TRUE' is not a valid value of the atomic type 'xs:boolean'.
 
-bash
+```
 CIMEMACH=/nobackup/proj/disk/luftlab/personal/$USER/NorESM2.1.3/cime/config/cesm/machines
 sed -i -E 's/compile_threaded=(["'"'"'])TRUE\1/compile_threaded=\1true\1/g; s/compile_threaded=(["'"'"'])FALSE\1/compile_threaded=\1false\1/g' $CIMEMACH/config_compilers.xml
-
+```
 
 ### (b) BLOM needs -r8
 
@@ -109,20 +109,20 @@ xml
 
 In my file this was inserted before line 147:
 
-bash
+```
 sed -i '147i\    <append MODEL="blom"> -r8 </append>' $CIMEMACH/config_compilers.xml
-
+```
 
 ### Validate
 
 Check all three files against the cime schemas:
 
-bash
+```
 XSD=/nobackup/proj/disk/luftlab/personal/$USER/NorESM2.1.3/cime/config/xml_schemas
 xmllint --noout --schema $XSD/config_compilers_v2.xsd $CIMEMACH/config_compilers.xml
 xmllint --noout --schema $XSD/config_machines.xsd     $CIMEMACH/config_machines.xml
 xmllint --noout --schema $XSD/config_batch.xsd        $CIMEMACH/config_batch.xml
-
+```
 
 Fixed versions are backed up in ~/noresm_arrhenius_config/.
 
@@ -138,13 +138,13 @@ It must go in *both* files (cam's is used for F/AMIP compsets, the top-level one
 
 *Do not* overwrite the 2.1.3 files with Anna's full file – insert only the block:
 
-bash
+```
 sed -n '854,890p' ~/noresm_arrhenius_config/config_pes_toplevel.xml > ~/noresm_arrhenius_config/arrhenius_pes_block.xml
 for f in cime_config/config_pes.xml components/cam/cime_config/config_pes.xml; do
   sed -i '/<config_pes/r '"$HOME"'/noresm_arrhenius_config/arrhenius_pes_block.xml' "$f"
 done
 xmllint --noout cime_config/config_pes.xml components/cam/cime_config/config_pes.xml
-
+```
 
 > *Limitation:* only covers f19 atmosphere grids (a%1.9x2.5, e.g. f19_tn14). Other resolutions (f09 etc.) need their own arrhenius block. Multi-node runs reportedly don't work yet (per Anna), so -1 = one node is intentional.
 
@@ -168,7 +168,7 @@ Backups in ~/noresm_arrhenius_config/:
 
 ## 7. Create, set up and build a case
 
-bash
+```
 cd /nobackup/proj/disk/luftlab/personal/$USER/NorESM2.1.3/cime/scripts
 ./create_newcase --case /nobackup/proj/disk/luftlab/personal/$USER/cases/test_f19 \
   --mach arrhenius --res f19_tn14 --compset NSSP370frc2 \
@@ -178,7 +178,7 @@ cd /nobackup/proj/disk/luftlab/personal/$USER/cases/test_f19
 ./xmlchange PROJECT=naiss2026-3-656-cpu     # default from Hamish's file is his project
 ./case.setup
 ./case.build
-
+```
 
 Notes:
 
@@ -187,23 +187,23 @@ Notes:
 - CHARGE_ACCOUNT still defaults to support_staff.
 - After changing config_compilers.xml, case.setup --reset does *not* regenerate the compiler macros in this cime version. Do:
 
-  bash
+  ```
   rm -f Macros.make Macros.cmake
   ./case.setup --reset
   grep -n r8 Macros.make           # verify the flag made it in
   ./case.build --clean ocn         # (or whichever component is affected)
   ./case.build
-  
+```  
 
 ## 8. Test run (next step – not yet done)
 
-bash
+```
 ./xmlchange STOP_OPTION=ndays,STOP_N=5
 ./xmlchange JOB_WALLCLOCK_TIME=01:00:00 --subgroup case.run
 ./preview_run
 ./case.submit
 squeue -u $USER ; tail -f CaseStatus     # expect "case.run success"
-
+```
 
 Logs: /nobackup/proj/disk/luftlab/personal/$USER/noresm_out/test_f19/run/ (check cesm.log.* first).
 
