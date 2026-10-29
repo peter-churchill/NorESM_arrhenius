@@ -193,7 +193,7 @@ Notes:
   grep -n r8 Macros.make           # verify the flag made it in
   ./case.build --clean ocn         # (or whichever component is affected)
   ./case.build
-```  
+  ```  
 
 ## 8. Test run (next step – not yet done)
 
