@@ -31,7 +31,9 @@ export LD_LIBRARY_PATH=/software/sse2/el9_epyc9005/easybuild/prefix/software/int
 ```
  
 If a newer Python module is loaded (check module list), unload it.
+
 !!! NEW ADDITION !!! 
+
 You may need to explicitly state the LD_LIBRARY_PATH as it seems like this is the source of the crash that we have experienced. 
 This may be fixed soon :) 
 ## 2. Conda environment (one-time)
