@@ -24,12 +24,16 @@ Run in every new shell, before building or creating cases:
  
 ```
 module load buildenv-intel/2023a-eb
+module load buildenv-intel/2023a-eb
 export MODULEPATH=/nobackup/proj/disk/ecearth3_input-data/apps/EasyBuild/el9_epyc9005/modules/all/Compiler/GCCcore/12.3.0:/nobackup/proj/disk/ecearth3_input-data/apps/EasyBuild/el9_epyc9005/modules/all/MPI/intel/2023.1.0/impi/2021.9.0:$MODULEPATH
 module load netCDF-Fortran/4.6.1 netCDF/4.9.2 netCDF-C++4/4.3.1
+export LD_LIBRARY_PATH=/software/sse2/el9_epyc9005/easybuild/prefix/software/intel-compilers/2023.1.0/compiler/2023.1.0/linux/compiler/lib/intel64_lin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 ```
  
 If a newer Python module is loaded (check module list), unload it.
- 
+!!! NEW ADDITION !!! 
+You may need to explicitly state the LD_LIBRARY_PATH as it seems like this is the source of the crash that we have experienced. 
+This may be fixed soon :) 
 ## 2. Conda environment (one-time)
  
 The yml pins bioconda builds of Perl packages. With conda's default channel_priority=strict these are excluded ("excluded by strict repo priority"), so the solve fails. Fix: relax channel priority for this command only:
