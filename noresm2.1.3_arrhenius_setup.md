@@ -318,3 +318,4 @@ Logs: /nobackup/proj/disk/luftlab/personal/$USER/noresm_out/test_f19/run/ (check
 | blom: error #6633 in mod_checksum.F90 | Missing -r8 for blom ([step 4b](#b-blom-needs--r8)) + regenerate Macros |
 | case.build: "must invoke case.setup" | case.setup failed earlier – fix that first |
 | create_newcase: no "machine match is arrhenius", NTASKS -3/-2 | PE block missing ([step 5](#5-pe-layout-for-arrhenius-config_pesxml)); fix, delete case, recreate |
+| buildlib.pio FAILED; pio log: icx-lto.so: error loading plugin: libimf.so | Intel runtime library path missing; run the export LD_LIBRARY_PATH=... line from step 1, then ./case.build --clean-all and ./case.build
